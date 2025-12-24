@@ -1,10 +1,11 @@
+use bytecode_vm::{NativeFunction, Value};
 use wasm_bindgen::prelude::*;
 use bytecode_vm::interpreter::Interpreter;
 use bytecode_vm::interpreter::{InterpretResult, CompilerError, RuntimeError};
 
 #[wasm_bindgen]
 pub struct WasmVm {
-
+    natives: Vec<JsNativeFn>
 }
 
 #[wasm_bindgen]
@@ -15,6 +16,12 @@ pub struct CompilerErr {
     pub len: usize
 }
 
+#[wasm_bindgen]
+pub struct JsNativeFn {
+    name: String,
+    arity: u8,
+    function: js_sys::Function
+}
 
 #[wasm_bindgen]
 pub struct Output {
@@ -73,12 +80,44 @@ impl Output {
 impl WasmVm {
     #[wasm_bindgen(constructor)]
     pub fn new() -> WasmVm {
-        WasmVm { }
+        WasmVm { natives: vec![] }
     }
     #[wasm_bindgen]
-    pub fn interpret(&mut self, source: &str) -> Output {
+    pub fn interpret(&mut self, source: &str, natives: Vec<JsNativeFn>) -> Output {
         let mut interpreter = Interpreter::new(source.to_owned());
-        return match interpreter.interpret() {
+
+        
+        let mut rust_natives: Vec::<NativeFunction> = vec![];
+        for (i, native) in natives.into_iter().enumerate() {
+            
+            self.natives.push(native);
+
+            rust_natives.push(NativeFunction { 
+                name: native.name.clone(), 
+                arity: native.arity, 
+                function: {
+                    fn my_func(vals: &[Value]) -> Value {
+                        return self.natives[i].function.call0(&JsValue::NULL);
+                    }
+                    my_func
+                } 
+            });
+        }
+
+
+        let print = NativeFunction { 
+            name: "print".to_owned(), 
+            arity: 1, 
+            function: {
+                fn print(vals: &[Value]) -> Value {
+                    println!("{}", vals[0]);
+                    return Value::Null;
+                }
+                print            
+            }
+        };
+
+        return match interpreter.interpret(vec![print]) {
             InterpretResult::Ok => Output::successful(),
             InterpretResult::CompileErr(compiler_errors) => Output::compile_err(compiler_errors),
             InterpretResult::RuntimeErr(runtime_error) => Output::runtime_err(runtime_error),        

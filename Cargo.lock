@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "bumpalo"
-version = "3.19.0"
+version = "3.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46c5e41b57b8bba42a04676d81cb89e9ee8e859a1a66f80a5a72e1cb76b34d43"
+checksum = "5dd9dc738b7a8311c7ade152424974d8115f2cdad61e8dab8dac9f2362298510"
 
 [[package]]
 name = "bytecode-wasm"
@@ -20,7 +20,7 @@ dependencies = [
 [[package]]
 name = "bytecode_vm"
 version = "0.1.0"
-source = "git+https://github.com/Pybounce/bytecode_vm#6e44f2c44a9d4bd042b966eac50b633de6da6971"
+source = "git+https://github.com/Pybounce/bytecode_vm#b2fb125087e83ea34dd57000b1be4295ec2b44f1"
 
 [[package]]
 name = "cfg-if"
