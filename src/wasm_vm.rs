@@ -1,5 +1,5 @@
 use bytecode_vm::{NativeFunction, Value};
-use js_sys::Array;
+use js_sys::{Array, Date};
 use wasm_bindgen::prelude::*;
 use bytecode_vm::interpreter::Interpreter;
 use bytecode_vm::interpreter::{CompilerError, RuntimeError};
@@ -127,6 +127,19 @@ pub fn compile(source: &str, natives: Vec<JsNativeFn>) -> CompileResult {
     for native in natives.into_iter() {
         rust_natives.push(native.into_native());
     }
+    let time = NativeFunction {
+        name: "time".to_owned(),
+        arity: 0,
+        function: {
+            fn time(_: &[Value]) -> Value {
+                let millis = Date::now();
+                Value::Number(millis / 1000.0)
+            }
+            Box::new(time)
+        },
+    };
+    rust_natives.push(time);
+
     return match Interpreter::new(source.to_owned(), rust_natives) {
         Ok(interpreter) => CompileResult::new_success(interpreter),
         Err(compiler_errors) => CompileResult::new_failure(compiler_errors),
